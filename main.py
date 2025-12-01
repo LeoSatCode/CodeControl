@@ -1,5 +1,6 @@
 from kivymd.app import MDApp
 from kivymd.uix.screenmanager import MDScreenManager
+from kivymd.uix.button import MDRectangleFlatButton
 from database import Database
 from screens.login import LoginScreen
 from screens.admin import AdminScreen
