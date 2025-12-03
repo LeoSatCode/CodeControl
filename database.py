@@ -21,7 +21,7 @@ class Database:
                 name TEXT NOT NULL,
                 office TEXT NOT NULL ,
                 password TEXT NOT NULL,
-                acess_level INTEGER NOT NULL
+                access_level INTEGER NOT NULL
             )
         ''')
         conn.commit()
@@ -47,9 +47,70 @@ class Database:
             )
         ''')
         conn.commit()
+        
+        #Tabela de Operadores (Costura da Alça)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS operators (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                office TEXT NOT NULL
+            )
+        ''')
+        conn.commit()
         conn.close()
         
     
-    # Futuramente teremos métodos como:
-    # def add_user(self, ...):
-    # def check_code(self, ...):
+    
+    def add_user(self, name, office, password, access_level):
+        """Adiciona um novo funcionário ao banco"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO users (name, office, password, access_level)
+                VALUES (?, ?, ?, ?)
+            ''', (name, office, password, access_level))
+            conn.commit()
+            print("Usuário cadastrado com sucesso")
+        except Exception as e:
+            print(f"Erro ao cadastrar: {e}")
+            
+        finally:
+            conn.close()
+            
+    def add_operator(self, name, office):
+        """Adiciona um novo operador ao banco"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO operators (name, office)
+                VALUES (?, ?)
+            ''', (name, office))
+            conn.commit()
+            print("Operador cadastrado com sucesso")
+        except Exception as e:
+            print(f"Erro ao cadastrar operador: {e}")
+        finally:
+            conn.close()
+        
+    def check_user(self, name, password):
+        """Verifica se o usuário existem"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT access_level FROM users
+            WHERE name = ? AND password = ?
+        ''', (name, password))
+        user = cursor.fetchone()
+        conn.close()
+        return user[0] if user else None
+    
+    def get_operators(self):
+        """Retorna a lista de operadores cadastrados"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM operators')
+        operators = cursor.fetchall()
+        conn.close()
+        return operators

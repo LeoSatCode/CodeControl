@@ -3,6 +3,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.label import MDLabel
+from kivymd.app import MDApp
 
 class LoginScreen(MDScreen):
     def __init__(self, **kwargs):
@@ -57,19 +58,28 @@ class LoginScreen(MDScreen):
         )
         
     def try_login(self):
-        """Lógica para verificar usuário e senha"""
-        user = self.input_user.text
-        password = self.input_password.text
+        """Lógica REAL para verificar usuário e senha"""
+        user_text = self.input_user.text
+        password_text = self.input_password.text
         
-        # Cadeia de Decisão Única
-        if user == "admin" and password == "admin":
-            self.manager.current = 'admin'
-            print("Logado como Admin")
+        # Acessa o banco de dados principal
+        app = MDApp.get_running_app()
+        access_level = app.db.check_user(user_text, password_text)
+        
+        if access_level:
+            # Se retornou um numero, o usuário existe! Agora vemos o nível:
             
-        elif user == "review" and password == "review": # ELIF = Else If (Senão Se)
-            self.manager.current = 'review'
-            print("Logado como Revisão")
-            
+            if access_level == 3: # Admin
+                print(f"Bem-vindo Admin! Nível {access_level}")
+                self.manager.current = 'admin'
+                
+            elif access_level == 2: # Revisora
+                print(f"Bem-vinda Revisora! Nível {access_level}")
+                self.manager.current = 'review'
+                
+            else:
+                print("Este usuário não tem permissão de acesso ao sistema (Apenas Operador).")
+                
         else:
-            
+            # Se retornou None
             print("Acesso negado: Usuário ou senha incorretos")

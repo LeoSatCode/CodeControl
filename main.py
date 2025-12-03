@@ -5,6 +5,7 @@ from database import Database
 from screens.login import LoginScreen
 from screens.admin import AdminScreen
 from screens.review import ReviewScreen
+from screens.add_operator import AddOperatorScreen
 
 class CodeControlApp(MDApp):
     def build(self):
@@ -14,6 +15,13 @@ class CodeControlApp(MDApp):
         # Inicializa o banco de dados ao abrir o app
         self.db = Database()
         self.db.create_tables()
+        
+        # Verifica se existe um usuário admin, se não existir cria um padrão
+        if not self.db.check_user("admin", "admin"):
+            print("Banco vazio, criando usuário admin padrão...")
+            # Níveis: 3=Admin, 2=Revisora
+            self.db.add_user("admin", "Gerente", "admin0433", 3)
+            self.db.add_user("analise", "Qualidade", "analise8042", 2)
 
         # Gerenciador de Telas
         sm = MDScreenManager()
@@ -22,6 +30,7 @@ class CodeControlApp(MDApp):
         sm.add_widget(LoginScreen(name='login'))
         sm.add_widget(AdminScreen(name='admin'))
         sm.add_widget(ReviewScreen(name='review'))
+        sm.add_widget(AddOperatorScreen(name='add_operator'))
         
         return sm
 
