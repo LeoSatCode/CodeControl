@@ -61,9 +61,24 @@ class AdminScreen(MDScreen):
             # operator[1] é o nome, operator[2] é o cargo
             item = TwoLineListItem(
                 text=operator[1],
-                secondary_text=operator[2]
+                secondary_text=operator[2],
+                # Ao clicar, chamar a função passando o ID e nome
+                on_release=lambda x, op_id=operator[0], op_name=operator[1]: self.open_operator_menu(op_id, op_name)
             )
             self.list_operators.add_widget(item)
+            
+    def open_operator_menu(self, op_id, op_name):
+        print(f"Clicou no {op_name} (ID: {op_id})")
+        
+        # Pega a tela de destino
+        screen_menu = self.manager.get_screen('operator_menu')
+        
+        # Passa os dados pra lá
+        screen_menu.operator_id = op_id
+        screen_menu.operator_name = op_name
+        
+        # Muda de tela
+        self.manager.current = 'operator_menu'
         
     
     def add_code_to_table(self):

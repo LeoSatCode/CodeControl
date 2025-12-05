@@ -61,25 +61,23 @@ class LoginScreen(MDScreen):
         """Lógica REAL para verificar usuário e senha"""
         user_text = self.input_user.text
         password_text = self.input_password.text
-        
+
         # Acessa o banco de dados principal
         app = MDApp.get_running_app()
-        access_level = app.db.check_user(user_text, password_text)
-        
-        if access_level:
+        if access_level := app.db.check_user(user_text, password_text):
             # Se retornou um numero, o usuário existe! Agora vemos o nível:
-            
+
             if access_level == 3: # Admin
                 print(f"Bem-vindo Admin! Nível {access_level}")
                 self.manager.current = 'admin'
-                
+
             elif access_level == 2: # Revisora
                 print(f"Bem-vinda Revisora! Nível {access_level}")
                 self.manager.current = 'review'
-                
+
             else:
                 print("Este usuário não tem permissão de acesso ao sistema (Apenas Operador).")
-                
+
         else:
             # Se retornou None
             print("Acesso negado: Usuário ou senha incorretos")

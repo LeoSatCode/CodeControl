@@ -1,3 +1,4 @@
+from datetime import datetime
 import sqlite3
 
 class Database:
@@ -29,6 +30,7 @@ class Database:
         #Tabelas Lotes (50 códigos por lote)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS lotes (
+                op_number TEXT NOT NULL,
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_user INTEGER NOT NULL,
                 creation_date TEXT NOT NULL,
@@ -114,3 +116,32 @@ class Database:
         operators = cursor.fetchall()
         conn.close()
         return operators
+    
+    def create_lote(self, operator_id, op_number):
+        """Cria um novo lote/tabela e retorna o ID dele"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        
+        # 1. Gera os dados automáticos aqui dentro
+        data_atual = datetime.now().strftime("%d/%m/%Y %H:%M")
+        status_inicial = "Aberto"
+        
+        try:
+            # 2. Insere os dados no banco
+            cursor.execute('''
+                INSERT INTO lotes (op_number, id_user, creation_date, status)
+                VALUES (?, ?, ?, ?)
+            ''', (op_number, operator_id, data_atual, status_inicial))
+            
+            conn.commit()
+            
+            # 3. Pega o ID e RETORNA ele
+            novo_id = cursor.lastrowid
+            print(f"Lote {novo_id} criado para a OP {op_number}")
+            return novo_id
+            
+        except Exception as e:
+            print(f"Erro ao criar lote: {e}")
+            return None
+        finally:
+            conn.close()

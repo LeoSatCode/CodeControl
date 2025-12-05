@@ -6,6 +6,7 @@ from screens.login import LoginScreen
 from screens.admin import AdminScreen
 from screens.review import ReviewScreen
 from screens.add_operator import AddOperatorScreen
+from screens.operator_menu import OperatorMenuScreen
 
 class CodeControlApp(MDApp):
     def build(self):
@@ -31,6 +32,7 @@ class CodeControlApp(MDApp):
         sm.add_widget(AdminScreen(name='admin'))
         sm.add_widget(ReviewScreen(name='review'))
         sm.add_widget(AddOperatorScreen(name='add_operator'))
+        sm.add_widget(OperatorMenuScreen(name='operator_menu'))
         
         return sm
 
