@@ -8,7 +8,7 @@ from kivymd.app import MDApp # <--- Precisamos disso pra chamar o banco
 class OperatorMenuScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.operator_id = None # <--- Importante: Vai receber o ID vindo da tela anterior
+        self.operator_id = None #Recebe o ID vindo da tela anterior
         self.operator_name = "" 
         
         layout = MDBoxLayout(orientation='vertical', padding=50, spacing=20)
@@ -25,7 +25,7 @@ class OperatorMenuScreen(MDScreen):
             width=400,
             pos_hint={"center_x": 0.5},
             font_size="32sp"
-            # Removemos o on_text_validate, vamos pegar o texto direto no botão
+            
         )
         layout.add_widget(self.input_op_number)
         
@@ -33,7 +33,7 @@ class OperatorMenuScreen(MDScreen):
         btn_nova_tabela = MDRaisedButton(
             text="Iniciar Nova Tabela", 
             pos_hint={"center_x": 0.5},
-            on_release=self.create_table_logic # Mudamos o nome pra ficar mais claro
+            on_release=self.create_table_logic
         )
         layout.add_widget(btn_nova_tabela)
         
