@@ -95,6 +95,27 @@ class Database:
             print(f"Erro ao cadastrar operador: {e}")
         finally:
             conn.close()
+            
+    def add_code(self, id_lote, code):
+        """Tenta salvar um código. Retorna True se conseguir, False se já existir"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            cursor.execute('SELECT id FROM codes WHERE code = ? AND id_lote = ?', (code, id_lote))
+            if data := cursor.fetchone():
+                return False  # Código já existe
+            cursor.execute('''
+                    INSERT INTO codes (id_lote, code, read)
+                    VALUES (?, ?, ?)
+                ''', (id_lote, code, 1))
+            conn.commit()
+            return True
+
+        except Exception as e:
+            print(f"Erro ao adicionar código: {e}")
+            return False
+        finally:
+            conn.close()
         
     def check_user(self, name, password):
         """Verifica se o usuário existem"""
@@ -143,5 +164,21 @@ class Database:
         except Exception as e:
             print(f"Erro ao criar lote: {e}")
             return None
+        finally:
+            conn.close()
+            
+    # Metodo para fechar um lote
+    def close_lote(self, id_lote):
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                UPDATE lotes
+                SET status = ?
+                WHERE id = ?
+            ''', ("Concluído", id_lote))
+            conn.commit()
+        except Exception as e:
+            print(f"Erro ao fechar lote: {e}")
         finally:
             conn.close()

@@ -62,10 +62,18 @@ class OperatorMenuScreen(MDScreen):
             novo_id_lote = app.db.create_lote(self.operator_id, op_digitada)
             
             if novo_id_lote:
-                print(f"Sucesso! Lote {novo_id_lote} criado. Vamos bipar!")
+                print(f"Sucesso! Lote {novo_id_lote} criado...")
                 
-                # AQUI FUTURAMENTE VAMOS MUDAR DE TELA
-                # self.manager.current = 'bip_screen'
+                # --- Lógica de Navegação Nova ---
+                # 1. Pega a tela de destino
+                scan_screen = self.manager.get_screen('scanning')
+                
+                # 2. Passa os dados
+                scan_screen.lote_id = novo_id_lote
+                scan_screen.op_number = op_digitada
+                
+                # 3. Vai pra lá
+                self.manager.current = 'scanning'
             else:
                 print("Erro ao criar lote no banco.")
         else:
