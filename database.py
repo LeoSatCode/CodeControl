@@ -45,7 +45,8 @@ class Database:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_lote INTEGER NOT NULL,
                 code TEXT NOT NULL,
-                read BOOLEAN NOT NULL DEFAULT 0
+                read BOOLEAN NOT NULL DEFAULT 0,
+                qa_check BOOLEAN NOT NULL DEFAULT 0
             )
         ''')
         conn.commit()
@@ -103,11 +104,11 @@ class Database:
         try:
             cursor.execute('SELECT id FROM codes WHERE code = ? AND id_lote = ?', (code, id_lote))
             if data := cursor.fetchone():
-                return False  # Código já existe
+                return False  # Código já existessss
             cursor.execute('''
-                    INSERT INTO codes (id_lote, code, read)
-                    VALUES (?, ?, ?)
-                ''', (id_lote, code, 1))
+                    INSERT INTO codes (id_lote, code, read, qa_check)
+                    VALUES (?, ?, ?, ?)
+                ''', (id_lote, code, 1, 0))
             conn.commit()
             return True
 
@@ -182,3 +183,72 @@ class Database:
             print(f"Erro ao fechar lote: {e}")
         finally:
             conn.close()
+
+    # Buscar dados de um lote
+    def get_lote_details(self, op_number):
+        conn = self.connect()
+        cursor = conn.cursor()
+
+        try:
+            # 1. Buscar o lote pela OP
+            cursor.execute('''
+                SELECT id, status, creation_date, id_user FROM lotes
+                WHERE op_number = ?
+            ''', (op_number,))
+            lote = cursor.fetchone()
+
+            if lote:
+                lote_id = lote[0]
+                lote_status = lote[1]
+                
+                # 2. Buscar os códigos desse lote
+                cursor.execute('''
+                    SELECT code, read, qa_check 
+                    FROM codes 
+                    WHERE id_lote = ?
+                ''', (lote_id,))
+                codes = cursor.fetchall()
+                
+                # 3. Retornar um dicionário com os dados do lote e os códigos
+                return {
+                    "id": lote_id,
+                    "status": lote_status,
+                    "data": lote[2],
+                    "codes": codes 
+                }
+            
+            return None # Se não achar a OP
+            
+        except Exception as e:
+            print(f"Erro ao buscar lote: {e}")
+            return None
+        finally:
+            conn.close()
+    
+    # Método para "tickar" os códigos do lote como lidos
+    def mark_code_checked(self, id_lote, code):
+        """Marca um código específico como revisado (qa_check = 1)"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            # Atualiza apenas se o código pertencer a este lote
+            cursor.execute('''
+                UPDATE codes 
+                SET qa_check = 1 
+                WHERE id_lote = ? AND code = ?
+            ''', (id_lote, code))
+            
+            # Verifica se alguma linha foi alterada (se o código existia)
+            if cursor.rowcount > 0:
+                conn.commit()
+                return True
+            return False
+            
+        except Exception as e:
+            print(f"Erro ao checar código: {e}")
+            return False
+        finally:
+            conn.close()
+        
+    
+ 
