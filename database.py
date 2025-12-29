@@ -40,11 +40,12 @@ class Database:
         conn.commit()
         
         #Tabela de códigos
+        # Tabela de códigos
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS codes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_lote INTEGER NOT NULL,
-                code TEXT NOT NULL,
+                code TEXT NOT NULL UNIQUE,
                 read BOOLEAN NOT NULL DEFAULT 0,
                 qa_check BOOLEAN NOT NULL DEFAULT 0
             )
@@ -98,13 +99,17 @@ class Database:
             conn.close()
             
     def add_code(self, id_lote, code):
-        """Tenta salvar um código. Retorna True se conseguir, False se já existir"""
+        """Tenta salvar um código. Retorna False se o código já existir em QUALQUER lote."""
         conn = self.connect()
         cursor = conn.cursor()
         try:
-            cursor.execute('SELECT id FROM codes WHERE code = ? AND id_lote = ?', (code, id_lote))
-            if data := cursor.fetchone():
-                return False  # Código já existessss
+            # Agora verificamos na tabela inteira se esse código já foi cadastrado
+            cursor.execute('SELECT id FROM codes WHERE code = ?', (code,))
+            
+            if cursor.fetchone():
+                print(f"Tentativa de duplicidade global: Código {code} já existe no sistema.")
+                return False  # Código já existe (em algum lugar)
+
             cursor.execute('''
                     INSERT INTO codes (id_lote, code, read, qa_check)
                     VALUES (?, ?, ?, ?)
@@ -190,55 +195,51 @@ class Database:
         cursor = conn.cursor()
 
         try:
-            # 1. Buscar o lote pela OP
+            # Consulta unificada para pegar códigos e dados do lote pela OP
+            
             cursor.execute('''
-                SELECT id, status, creation_date, id_user FROM lotes
-                WHERE op_number = ?
+                SELECT c.code, c.read, c.qa_check, l.status, l.creation_date, l.id
+                FROM codes c
+                JOIN lotes l ON c.id_lote = l.id
+                WHERE l.op_number = ?
             ''', (op_number,))
-            lote = cursor.fetchone()
+            
+            resultados = cursor.fetchall()
 
-            if lote:
-                lote_id = lote[0]
-                lote_status = lote[1]
-                
-                # 2. Buscar os códigos desse lote
-                cursor.execute('''
-                    SELECT code, read, qa_check 
-                    FROM codes 
-                    WHERE id_lote = ?
-                ''', (lote_id,))
-                codes = cursor.fetchall()
-                
-                # 3. Retornar um dicionário com os dados do lote e os códigos
+            if resultados:
+                # Monta a lista de códigos
+                lista_codigos = []
+                for linha in resultados:
+                    lista_codigos.append((linha[0], linha[1], linha[2]))
+
                 return {
-                    "id": lote_id,
-                    "status": lote_status,
-                    "data": lote[2],
-                    "codes": codes 
+                    "id": "Múltiplos", # Não usarei mais um ID único aqui
+                    "status": resultados[0][3], # Status do primeiro lote encontrado
+                    "data": resultados[0][4],   # Data do primeiro lote
+                    "codes": lista_codigos 
                 }
             
-            return None # Se não achar a OP
+            return None 
             
         except Exception as e:
-            print(f"Erro ao buscar lote: {e}")
+            print(f"Erro ao buscar OP unificada: {e}")
             return None
         finally:
             conn.close()
     
     # Método para "tickar" os códigos do lote como lidos
-    def mark_code_checked(self, id_lote, code):
-        """Marca um código específico como revisado (qa_check = 1)"""
+    def mark_code_checked(self, id_lote_ignorado, code):
+        """Marca código como revisado usando apenas o código de barras (que é único)"""
         conn = self.connect()
         cursor = conn.cursor()
         try:
-            # Atualiza apenas se o código pertencer a este lote
+            # Atualiza direto pelo código, independente de qual lote/operador seja
             cursor.execute('''
                 UPDATE codes 
                 SET qa_check = 1 
-                WHERE id_lote = ? AND code = ?
-            ''', (id_lote, code))
+                WHERE code = ?
+            ''', (code,))
             
-            # Verifica se alguma linha foi alterada (se o código existia)
             if cursor.rowcount > 0:
                 conn.commit()
                 return True

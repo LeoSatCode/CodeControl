@@ -95,24 +95,19 @@ class ReviewScreen(MDScreen):
                     codigo = item[0]
                     revisado = item[2]
                     
-                    # Usamos OneLineAvatarIconListItem para permitir ícones
                     list_item = OneLineAvatarIconListItem(text=f"Código: {codigo}")
-                    
-                    # Armazena o ID no widget para achar fácil depois
                     list_item.code_number = str(codigo)
                     
                     if revisado:
-                        list_item.bg_color = (0, 1, 0, 0.2) # Fundo Verde
-                        # Adiciona o ícone de Check Nativo do KivyMD
+                        list_item.bg_color = (0, 1, 0, 0.2)
                         icon = IconRightWidget(icon="check-circle", theme_text_color="Custom", text_color=(0, 0.6, 0, 1))
                         list_item.add_widget(icon)
+                        list_item.text += " ✅" # Marca textual para ajudar na contagem
                     
                     self.lista_codigos.add_widget(list_item)
                 
                 self.input_code.text = ""
                 self.input_code.hint_text = "AGORA BIPE AS PEÇAS AQUI..." 
-                
-                # Agendar o foco para daqui a 0.1 segundos
                 Clock.schedule_once(self.set_focus, 0.1)
                 
             else:
@@ -129,13 +124,12 @@ class ReviewScreen(MDScreen):
                 self.lbl_info.text = f"Peça {texto_digitado} revisada com sucesso!"
                 self.lbl_info.theme_text_color = "Primary"
                 
-                # Atualiza visualmente na lista
+                # 1. ATUALIZA VISUALMENTE O ITEM ATUAL
                 for widget in self.lista_codigos.children:
                     if hasattr(widget, 'code_number') and widget.code_number == texto_digitado:
-                        # 1. Muda a cor do fundo
                         widget.bg_color = (0, 1, 0, 0.2)
                         
-                        # 2. Verifica se já tem ícone, se não tiver, adiciona
+                        # Adiciona ícone se não tiver
                         has_icon = False
                         for child in widget.children:
                             if isinstance(child, IconRightWidget):
@@ -145,10 +139,31 @@ class ReviewScreen(MDScreen):
                         if not has_icon:
                             icon = IconRightWidget(icon="check-circle", theme_text_color="Custom", text_color=(0, 0.6, 0, 1))
                             widget.add_widget(icon)
+                        
+                        # Adiciona marca textual se não tiver 
+                        if "✅" not in widget.text:
+                            widget.text += " ✅"
 
+                # 2. CONTAGEM E FECHAMENTO AUTOMÁTICO 
+                total_itens = len(self.lista_codigos.children)
+                itens_prontos = 0
+                
+                for widget in self.lista_codigos.children:
+                    # Conta quantos têm a marca de revisado
+                    if "✅" in widget.text:
+                        itens_prontos += 1
+                
+                # Verifica se acabou
+                if itens_prontos == total_itens:
+                    app.db.close_lote(self.lote_atual_id)
+                    
+                    self.lbl_info.text = f"LOTE CONCLUÍDO COM SUCESSO! ({itens_prontos}/{total_itens})"
+                    self.lbl_info.theme_text_color = "Custom"
+                    self.lbl_info.text_color = (0, 0.7, 0, 1) # Verde Vitória
+                
                 self.input_code.text = ""
-                # Foco turbo ativado
                 Clock.schedule_once(self.set_focus, 0.1)
+                
             else:
                 self.lbl_info.text = f"Erro: Código {texto_digitado} inválido ou de outra OP!"
                 self.lbl_info.theme_text_color = "Error"
@@ -163,4 +178,4 @@ class ReviewScreen(MDScreen):
         self.lbl_info.text = "Aguardando busca..."
         self.lbl_info.theme_text_color = "Secondary"
         if hasattr(self.manager, 'current'):
-            self.manager.current = 'operator_menu'
+            self.manager.current = 'login'
