@@ -1,3 +1,5 @@
+import sys
+import os
 from kivymd.app import MDApp
 from kivymd.uix.screenmanager import MDScreenManager
 from kivymd.uix.button import MDRectangleFlatButton
@@ -9,13 +11,36 @@ from screens.add_operator import AddOperatorScreen
 from screens.operator_menu import OperatorMenuScreen
 from screens.scanning import ScanningScreen
 
+
+
+def load_db_path(self):
+    # Detecta o caminho da aplicação
+    if getattr(sys, 'frozen', False):
+        pasta_do_app = os.path.dirname(sys.executable)
+    else:
+        pasta_do_app = os.path.dirname(os.path.abspath(__file__))
+        
+    # Monta o caminho do config.txt
+    caminho_config = os.path.join(pasta_do_app, "config.txt")
+    
+    # Tenta ler
+    if os.path.exists(caminho_config):
+        with open(caminho_config, "r") as f:
+            path = f.read().strip()
+            if path: return path
+            
+    return "conterbag.db" # Padrão se não achar config
+
 class CodeControlApp(MDApp):
     def build(self):
-        self.theme_cls.primary_palette = "Blue"  # Podemos mudar a cor depois
+        self.theme_cls.primary_palette = "Blue"
         self.theme_cls.theme_style = "Light"
+
+        caminho_banco = load_db_path()
+        print(f"🔌 Conectando no banco em: {caminho_banco}")
         
         # Inicializa o banco de dados ao abrir o app
-        self.db = Database()
+        self.db = Database(caminho_banco)
         self.db.create_tables()
         
         # Verifica se existe um usuário admin, se não existir cria um padrão

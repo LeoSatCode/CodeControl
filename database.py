@@ -2,8 +2,8 @@ from datetime import datetime
 import sqlite3
 
 class Database:
-    def __init__(self):
-        self.db_name = "conterbag.db"
+    def __init__(self, db_path="conterbag.db"): 
+        self.db_name = db_path
     
     def connect(self):
         """Cria conexão com o banco"""
