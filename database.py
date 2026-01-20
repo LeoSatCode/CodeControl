@@ -2,7 +2,7 @@ from datetime import datetime
 import sqlite3
 
 class Database:
-    def __init__(self, db_path="conterbag.db"): 
+    def __init__(self, db_path="lotes.db"): 
         self.db_name = db_path
     
     def connect(self):
@@ -213,9 +213,9 @@ class Database:
                     lista_codigos.append((linha[0], linha[1], linha[2]))
 
                 return {
-                    "id": "Múltiplos", # Não usarei mais um ID único aqui
-                    "status": resultados[0][3], # Status do primeiro lote encontrado
-                    "data": resultados[0][4],   # Data do primeiro lote
+                    "id": "Múltiplos", 
+                    "status": resultados[0][3],
+                    "data": resultados[0][4], 
                     "codes": lista_codigos 
                 }
             
@@ -250,6 +250,40 @@ class Database:
             return False
         finally:
             conn.close()
-        
     
+    # Método para obter lotes por operador
+    def get_lotes_by_operator(self, operator_id):
+        """Retorna todos os lotes criados por um operador específico"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                SELECT id, op_number, creation_date, status 
+                FROM lotes 
+                WHERE id_user = ? 
+                ORDER BY id DESC
+            ''', (operator_id,))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Erro ao buscar histórico: {e}")
+            return []
+        finally:
+            conn.close()
+
+    def get_lote_codes_only(self, lote_id):
+        """Busca APENAS os códigos deste lote específico (para auditoria individual)"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                SELECT code, read, qa_check 
+                FROM codes 
+                WHERE id_lote = ?
+            ''', (lote_id,))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Erro ao buscar códigos do lote: {e}")
+            return []
+        finally:
+            conn.close()
  

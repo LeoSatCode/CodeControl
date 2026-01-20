@@ -10,6 +10,7 @@ from screens.review import ReviewScreen
 from screens.add_operator import AddOperatorScreen
 from screens.operator_menu import OperatorMenuScreen
 from screens.scanning import ScanningScreen
+from screens.history import HistoryScreen
 
 
 
@@ -29,14 +30,14 @@ def load_db_path(self):
             path = f.read().strip()
             if path: return path
             
-    return "conterbag.db" # Padrão se não achar config
+    return "lotes.db" # Padrão se não achar config
 
 class CodeControlApp(MDApp):
     def build(self):
         self.theme_cls.primary_palette = "Blue"
-        self.theme_cls.theme_style = "Light"
+        self.theme_cls.theme_style = "Dark"
 
-        caminho_banco = load_db_path()
+        caminho_banco = load_db_path(self)
         print(f"🔌 Conectando no banco em: {caminho_banco}")
         
         # Inicializa o banco de dados ao abrir o app
@@ -60,6 +61,7 @@ class CodeControlApp(MDApp):
         sm.add_widget(AddOperatorScreen(name='add_operator'))
         sm.add_widget(OperatorMenuScreen(name='operator_menu'))
         sm.add_widget(ScanningScreen(name='scanning'))
+        sm.add_widget(HistoryScreen(name='history'))    
         
         return sm
 

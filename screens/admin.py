@@ -63,9 +63,43 @@ class AdminScreen(MDScreen):
                 text=operator[1],
                 secondary_text=operator[2],
                 # Ao clicar, chamar a função passando o ID e nome
-                on_release=lambda x, op_id=operator[0], op_name=operator[1]: self.open_operator_menu(op_id, op_name)
+                on_release=lambda x, op_id=operator[0], op_name=operator[1]: self.show_options(op_id, op_name)
             )
+            
             self.list_operators.add_widget(item)
+
+    def show_options(self, operator_id, operator_name):
+        from kivymd.uix.dialog import MDDialog
+        from kivymd.uix.button import MDFlatButton
+
+        self.dialog_choice = MDDialog(
+            title=f"Opções: {operator_name}",
+            text="O que deseja fazer?",
+            buttons=[
+                MDFlatButton(
+                    text="HISTÓRICO",
+                    on_release=lambda x: self.go_to_history(operator_id, operator_name)
+                ),
+                MDFlatButton(
+                    text="NOVO LOTE",
+                    on_release=lambda x: self.go_to_scanning(operator_id, operator_name)
+                ),
+            ],
+        )
+        self.dialog_choice.open()
+
+    def go_to_history(self, op_id, op_name):
+        self.dialog_choice.dismiss()
+        # Pega a tela de histórico
+        history_screen = self.manager.get_screen('history')
+        # Carrega os dados dela
+        history_screen.load_history(op_id, op_name)
+        # Muda a tela
+        self.manager.current = 'history'
+
+    def go_to_scanning(self, op_id, op_name):
+        self.dialog_choice.dismiss()
+        self.open_operator_menu(op_id, op_name)
             
     def open_operator_menu(self, op_id, op_name):
         print(f"Clicou no {op_name} (ID: {op_id})")
