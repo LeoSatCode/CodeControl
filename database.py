@@ -1,5 +1,6 @@
 from datetime import datetime
 import sqlite3
+import bcrypt
 
 class Database:
     def __init__(self, db_path="lotes.db"): 
@@ -66,35 +67,23 @@ class Database:
     
     
     def add_user(self, name, office, password, access_level):
-        """Adiciona um novo funcionário ao banco"""
+        """Adiciona um novo funcionário com SENHA CRIPTOGRAFADA"""
         conn = self.connect()
         cursor = conn.cursor()
+        
+        # 1. Criptografia (Hashing)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
         try:
             cursor.execute('''
                 INSERT INTO users (name, office, password, access_level)
                 VALUES (?, ?, ?, ?)
-            ''', (name, office, password, access_level))
+            ''', (name, office, hashed_password, access_level)) # Salvamos o HASH, não a senha pura
             conn.commit()
-            print("Usuário cadastrado com sucesso")
+            print("Usuário cadastrado com sucesso (Senha protegida)")
         except Exception as e:
             print(f"Erro ao cadastrar: {e}")
             
-        finally:
-            conn.close()
-            
-    def add_operator(self, name, office):
-        """Adiciona um novo operador ao banco"""
-        conn = self.connect()
-        cursor = conn.cursor()
-        try:
-            cursor.execute('''
-                INSERT INTO operators (name, office)
-                VALUES (?, ?)
-            ''', (name, office))
-            conn.commit()
-            print("Operador cadastrado com sucesso")
-        except Exception as e:
-            print(f"Erro ao cadastrar operador: {e}")
         finally:
             conn.close()
             
@@ -123,17 +112,46 @@ class Database:
         finally:
             conn.close()
         
-    def check_user(self, name, password):
-        """Verifica se o usuário existem"""
+    def check_user(self, name, password_digitada):
+        """Verifica login comparando a senha digitada com o hash do banco"""
         conn = self.connect()
         cursor = conn.cursor()
+        
+        # Busca a SENHA (hash) e o NÍVEL
         cursor.execute('''
-            SELECT access_level FROM users
-            WHERE name = ? AND password = ?
-        ''', (name, password))
-        user = cursor.fetchone()
+            SELECT password, access_level FROM users
+            WHERE name = ?
+        ''', (name,))
+        
+        user_data = cursor.fetchone()
         conn.close()
-        return user[0] if user else None
+
+        if user_data:
+            stored_hash = user_data[0] # A senha criptografada que veio do banco
+            access_level = user_data[1]
+            
+            # O bcrypt compara a senha digitada (bytes) com o hash armazenado (bytes)
+            # Converte a string do banco para bytes
+            if bcrypt.checkpw(password_digitada.encode('utf-8'), stored_hash.encode('utf-8')):
+                return access_level # Senha bateu!
+            
+        return None # Usuário não achado ou senha errada
+    
+    def add_operator(self, name, office):
+        """Adiciona um novo operador ao banco"""
+        conn = self.connect()
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO operators (name, office)
+                VALUES (?, ?)
+            ''', (name, office))
+            conn.commit()
+            print("Operador cadastrado com sucesso")
+        except Exception as e:
+            print(f"Erro ao cadastrar operador: {e}")
+        finally:
+            conn.close()
     
     def get_operators(self):
         """Retorna a lista de operadores cadastrados"""
