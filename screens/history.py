@@ -6,6 +6,8 @@ from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.toast import toast 
+from utils.exporter import export_history_to_excel
 
 class HistoryScreen(MDScreen):
     def __init__(self, **kwargs):
@@ -36,9 +38,31 @@ class HistoryScreen(MDScreen):
         )
         btn_voltar.bind(on_release=lambda x: setattr(self.manager, 'current', 'admin'))
 
+        # Botão de Exportar
+        from kivymd.uix.button import MDIconButton
+        
+        botoes_layout = MDBoxLayout(orientation='horizontal', size_hint_y=None, height=50, spacing=10, padding=[50, 0])
+        
+        btn_voltar = MDRaisedButton(
+            text="Voltar", 
+            pos_hint={"center_y": 0.5}
+        )
+        btn_voltar.bind(on_release=lambda x: setattr(self.manager, 'current', 'admin'))
+        
+        btn_exportar = MDRaisedButton(
+            text="Exportar Excel",
+            icon="file-excel",
+            md_bg_color=(0, 0.7, 0, 1), # Verde Excel
+            pos_hint={"center_y": 0.5}
+        )
+        btn_exportar.bind(on_release=self.fazer_exportacao)
+
+        botoes_layout.add_widget(btn_voltar)
+        botoes_layout.add_widget(btn_exportar)
+
         layout.add_widget(self.lbl_title)
         layout.add_widget(scroll)
-        layout.add_widget(btn_voltar)
+        layout.add_widget(botoes_layout)
         self.add_widget(layout)
 
     def load_history(self, operator_id, operator_name):
@@ -111,3 +135,48 @@ class HistoryScreen(MDScreen):
             buttons=[MDFlatButton(text="FECHAR", on_release=lambda x: self.dialog.dismiss())]
         )
         self.dialog.open()
+
+    def fazer_exportacao(self, instance):
+        # Pega os dados atuais do banco
+        app = MDApp.get_running_app()
+        lotes = app.db.get_lotes_by_operator(self.operator_id)
+        
+        if not lotes:
+            toast("Nada para exportar!")
+            return
+        
+        dados_para_excel = [] # Super lista para o Excel
+
+        # 1. Varre os lotes
+        for lote in lotes:
+            lote_id = lote[0]
+            op_number = lote[1]
+            data = lote[2]
+            status_lote = lote[3]
+
+            # 2. Busca os códigos SÓ desse lote
+            codigos = app.db.get_lote_codes_only(lote_id)
+
+            # 3. Varre os códigos
+            for codigo in codigos:
+                nome_codigo = codigo[0]
+                status_revisao = "OK" if codigo[2] == 1 else "Pendente"
+
+                linha = {
+                    "OP": op_number,
+                    "Data Criação": data,
+                    "Status do Lote": status_lote,
+                    "Código de Barras": nome_codigo,
+                    "Revisado?": status_revisao
+                }
+                
+               
+                dados_para_excel.append(linha)
+
+        
+        sucesso, mensagem = export_history_to_excel(self.operator_name, dados_para_excel)
+        
+        if sucesso:
+            toast(f"Sucesso! Salvo em: {mensagem}")
+        else:
+            toast(f"Erro: {mensagem}")
