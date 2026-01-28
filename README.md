@@ -29,21 +29,21 @@ O **Code Control** foi desenvolvido para digitalizar e auditar esse processo. O 
 Sistema de login autenticado para diferenciar níveis de permissão (Administrador vs. Analista).
 
 <div align="center">
-  <img src="assets/login.png" alt="Tela de Login" width="600">
+  <img src="screens/assets/login.png" alt="Tela de Login" width="600">
 </div>
 
 ### 2. Gestão de Pessoal
 **Cadastro de Operadores:** Módulo para registro dos colaboradores da linha de produção, fundamental para a rastreabilidade e métricas de produtividade individual.
 
 <div align="center">
-  <img src="assets/cadastro_operador.png" alt="Tela de Cadastro de Operador" width="600">
+  <img src="screens/assets/cadastro_operador.png" alt="Tela de Cadastro de Operador" width="600">
 </div>
 
 ### 3. Controle de Produção
 **Cadastro de Lote:** O administrador cria lotes de códigos (ex: agrupamentos de 50 etiquetas). O sistema garante que esses códigos entram no banco de dados prontos para validação, evitando inserção manual errada posteriormente.
 
 <div align="center">
-  <img src="assets/cadastro_lote.png" alt="Tela de Cadastro de Lote" width="600">
+  <img src="screens/assets/cadastro_lote.png" alt="Tela de Cadastro de Lote" width="600">
 </div>
 
 ### 4. Auditoria em Tempo Real
@@ -53,21 +53,21 @@ Sistema de login autenticado para diferenciar níveis de permissão (Administrad
 * 📊 **Status:** Barra de progresso visual do lote.
 
 <div align="center">
-  <img src="assets/conferencia.png" alt="Tela de Conferência" width="600">
+  <img src="screens/assets/conferencia.png" alt="Tela de Conferência" width="600">
 </div>
 
 ### 5. Histórico e Logs
 Visualização completa de todas as movimentações, permitindo auditoria retroativa em caso de dúvidas sobre um lote fechado.
 
 <div align="center">
-  <img src="assets/historico.png" alt="Tela de Histórico" width="600">
+  <img src="screens/assets/historico.png" alt="Tela de Histórico" width="600">
 </div>
 
 ### 6. Inteligência de Dados
 **Exportação de Relatórios:** Utilizando a biblioteca **Pandas**, o sistema compila os dados brutos em planilhas Excel (.xlsx) formatadas, detalhando a eficiência por turno, operador e lote.
 
 <div align="center">
-  <img src="assets/relatorio.png" alt="Exemplo de Relatório Excel" width="600">
+  <img src="screens/assets/relatorio.png" alt="Exemplo de Relatório Excel" width="600">
 </div>
 
 ---
@@ -96,3 +96,4 @@ $ pip install -r requirements.txt
 
 # Execute a aplicação
 $ python main.py
+screens/
